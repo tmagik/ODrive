@@ -104,8 +104,6 @@ public:
     bool vel_estimate_valid_ = false;
 
     int16_t tim_cnt_sample_ = 0; // 
-    static const constexpr GPIO_TypeDef* ports_to_sample[] = { GPIOA, GPIOB, GPIOC };
-    uint16_t port_samples_[sizeof(ports_to_sample) / sizeof(ports_to_sample[0])];
     // Updated by low_level pwm_adc_cb
     uint8_t hall_state_ = 0x0; // bit[0] = HallA, .., bit[2] = HallC
     float sincos_sample_s_ = 0.0f;

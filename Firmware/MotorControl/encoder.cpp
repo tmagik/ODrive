@@ -310,7 +310,7 @@ bool Encoder::run_offset_calibration() {
     return true;
 }
 
-static bool decode_hall(uint8_t hall_state, int32_t* hall_cnt) {
+static constexpr bool decode_hall(uint8_t hall_state, int32_t* hall_cnt) {
     switch (hall_state) {
         case 0b001: *hall_cnt = 0; return true;
         case 0b011: *hall_cnt = 1; return true;
@@ -323,13 +323,17 @@ static bool decode_hall(uint8_t hall_state, int32_t* hall_cnt) {
 }
 
 void Encoder::sample_now() {
+
     switch (mode_) {
         case MODE_INCREMENTAL: {
             tim_cnt_sample_ = (int16_t)timer_->Instance->CNT;
         } break;
 
         case MODE_HALL: {
-            // do nothing: samples already captured in general GPIO capture
+            hallA_gpio_.read();
+            hallB_gpio_.read();
+            hallC_gpio_.read();
+            decode_hall_samples();
         } break;
 
         case MODE_SINCOS: {
@@ -350,25 +354,12 @@ void Encoder::sample_now() {
            set_error(ERROR_UNSUPPORTED_ENCODER_MODE);
         } break;
     }
-
-    for (size_t i = 0; i < sizeof(ports_to_sample) / sizeof(ports_to_sample[0]); ++i) {
-        port_samples_[i] = ports_to_sample[i]->IDR;
-    }
-}
-
-bool Encoder::read_sampled_gpio(Stm32Gpio gpio) {
-    for (size_t i = 0; i < sizeof(ports_to_sample) / sizeof(ports_to_sample[0]); ++i) {
-        if (ports_to_sample[i] == gpio.port_) {
-            return port_samples_[i] & gpio.pin_mask_;
-        }
-    }
-    return false;
 }
 
 void Encoder::decode_hall_samples() {
-    hall_state_ = (read_sampled_gpio(hallA_gpio_) ? 1 : 0)
-                | (read_sampled_gpio(hallB_gpio_) ? 2 : 0)
-                | (read_sampled_gpio(hallC_gpio_) ? 4 : 0);
+    hall_state_ = hallA_gpio_.getState() << 0
+                | hallB_gpio_.getState() << 1
+                | hallC_gpio_.getState() << 2;
 }
 
 bool Encoder::abs_spi_start_transaction(){

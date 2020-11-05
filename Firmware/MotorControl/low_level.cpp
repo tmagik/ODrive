@@ -485,9 +485,7 @@ void pwm_trig_adc_cb(ADC_HandleTypeDef* hadc, bool injected) {
         } else {
             axis.motor_.current_meas_.phC = current - axis.motor_.DC_calib_.phC;
         }
-        // Prepare hall readings
-        // TODO move this to inside encoder update function
-        axis.encoder_.decode_hall_samples();
+
         // Trigger axis thread
         axis.signal_current_meas();
     } else {

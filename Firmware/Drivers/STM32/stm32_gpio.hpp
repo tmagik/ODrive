@@ -4,7 +4,7 @@
 #include <gpio.h>
 
 class Stm32Gpio {
-public:
+   public:
     static const Stm32Gpio none;
 
     Stm32Gpio() : port_(nullptr), pin_mask_(0) {}
@@ -27,8 +27,13 @@ public:
         }
     }
 
-    bool read() {
-        return port_ && (port_->IDR & pin_mask_);
+    constexpr bool read() {
+        state_ = port_ && (port_->IDR & pin_mask_);
+        return state_;
+    }
+
+    constexpr bool getState(){
+        return state_;
     }
 
     /**
@@ -68,7 +73,10 @@ public:
     }
 
     GPIO_TypeDef* port_;
-    uint16_t pin_mask_; // TODO: store pin_number_ instead of pin_mask_
+    uint16_t pin_mask_;  // TODO: store pin_number_ instead of pin_mask_
+
+   private:
+    bool state_;
 };
 
-#endif // __STM32_GPIO_HPP
+#endif  // __STM32_GPIO_HPP
