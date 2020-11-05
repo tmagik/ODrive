@@ -325,9 +325,6 @@ static constexpr bool decode_hall(uint8_t hall_state, int32_t* hall_cnt) {
 }
 
 void Encoder::sample_now() {
-    static int count = 0;
-    if(axis_->axis_num_ == 0)
-        count++;
     switch (mode_) {
         case MODE_INCREMENTAL: {
             tim_cnt_sample_ = (int16_t)timer_->Instance->CNT;
