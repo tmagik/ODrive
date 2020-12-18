@@ -76,9 +76,14 @@ bool brake_resistor_saturated = false;
 // @brief Arms the brake resistor
 void safety_critical_arm_brake_resistor() {
     CRITICAL_SECTION() {
+        for (size_t i = 0; i < AXIS_COUNT; ++i) {
+            axes[i].motor_.I_bus_ = 0.0f;
+        }
         brake_resistor_armed = true;
+#if HW_VERSION_MAJOR == 3
         htim2.Instance->CCR3 = 0;
         htim2.Instance->CCR4 = TIM_APB1_PERIOD_CLOCKS + 1;
+#endif
     }
 }
 
@@ -91,8 +96,10 @@ void safety_critical_disarm_brake_resistor() {
 
     CRITICAL_SECTION() {
         brake_resistor_armed = false;
+#if HW_VERSION_MAJOR == 3
         htim2.Instance->CCR3 = 0;
         htim2.Instance->CCR4 = TIM_APB1_PERIOD_CLOCKS + 1;
+#endif
     }
 
     // Check necessary to prevent infinite recursion
@@ -112,6 +119,7 @@ void safety_critical_apply_brake_resistor_timings(uint32_t low_off, uint32_t hig
 
     CRITICAL_SECTION() {
         if (brake_resistor_armed) {
+#if HW_VERSION_MAJOR == 3
             // Safe update of low and high side timings
             // To avoid race condition, first reset timings to safe state
             // ch3 is low side, ch4 is high side
@@ -119,6 +127,7 @@ void safety_critical_apply_brake_resistor_timings(uint32_t low_off, uint32_t hig
             htim2.Instance->CCR4 = TIM_APB1_PERIOD_CLOCKS + 1;
             htim2.Instance->CCR3 = low_off;
             htim2.Instance->CCR4 = high_on;
+#endif
         }
     }
 }
@@ -159,12 +168,16 @@ void start_adc_pwm() {
 
 
     // Start brake resistor PWM in floating output configuration
+#if HW_VERSION_MAJOR == 3
     htim2.Instance->CCR3 = 0;
     htim2.Instance->CCR4 = TIM_APB1_PERIOD_CLOCKS + 1;
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+#endif
 
-    safety_critical_arm_brake_resistor();
+    if (odrv.config_.enable_brake_resistor) {
+        safety_critical_arm_brake_resistor();
+    }
 }
 
 // @brief ADC1 measurements are written to this buffer by DMA
@@ -310,31 +323,41 @@ void update_brake_current() {
             Ibus_sum += axes[i].motor_.I_bus_;
         }
     }
+
+    float brake_duty;
+
+    if (odrv.config_.enable_brake_resistor) {
+        if (!(odrv.config_.brake_resistance > 0.0f)) {
+            odrv.disarm_with_error(ODrive::ERROR_INVALID_BRAKE_RESISTANCE);
+            return;
+        }
     
-    // Don't start braking until -Ibus > regen_current_allowed
-    float brake_current = -Ibus_sum - odrv.config_.max_regen_current;
-    float brake_duty = brake_current * odrv.config_.brake_resistance / vbus_voltage;
-    
-    if (odrv.config_.enable_dc_bus_overvoltage_ramp && (odrv.config_.brake_resistance > 0.0f) && (odrv.config_.dc_bus_overvoltage_ramp_start < odrv.config_.dc_bus_overvoltage_ramp_end)) {
-        brake_duty += std::max((vbus_voltage - odrv.config_.dc_bus_overvoltage_ramp_start) / (odrv.config_.dc_bus_overvoltage_ramp_end - odrv.config_.dc_bus_overvoltage_ramp_start), 0.0f);
-    }
+        // Don't start braking until -Ibus > regen_current_allowed
+        float brake_current = -Ibus_sum - odrv.config_.max_regen_current;
+        brake_duty = brake_current * odrv.config_.brake_resistance / vbus_voltage;
+        
+        if (odrv.config_.enable_dc_bus_overvoltage_ramp && (odrv.config_.brake_resistance > 0.0f) && (odrv.config_.dc_bus_overvoltage_ramp_start < odrv.config_.dc_bus_overvoltage_ramp_end)) {
+            brake_duty += std::max((vbus_voltage - odrv.config_.dc_bus_overvoltage_ramp_start) / (odrv.config_.dc_bus_overvoltage_ramp_end - odrv.config_.dc_bus_overvoltage_ramp_start), 0.0f);
+        }
 
-    if (is_nan(brake_duty)) {
-        // Shuts off all motors AND brake resistor, sets error code on all motors.
-        odrv.disarm_with_error(ODrive::ERROR_BRAKE_DUTY_CYCLE_NAN);
-        return;
-    }
+        if (is_nan(brake_duty)) {
+            // Shuts off all motors AND brake resistor, sets error code on all motors.
+            odrv.disarm_with_error(ODrive::ERROR_BRAKE_DUTY_CYCLE_NAN);
+            return;
+        }
 
-    if (brake_duty >= 0.95f) {
-        brake_resistor_saturated = true;
-    }
+        if (brake_duty >= 0.95f) {
+            brake_resistor_saturated = true;
+        }
 
-    // Duty limit at 95% to allow bootstrap caps to charge
-    brake_duty = std::clamp(brake_duty, 0.0f, 0.95f);
+        // Duty limit at 95% to allow bootstrap caps to charge
+        brake_duty = std::clamp(brake_duty, 0.0f, 0.95f);
 
-    // Special handling to avoid the case 0.0/0.0 == NaN, or divide by 0.
-    if (odrv.config_.brake_resistance > 0.0f) {
+        // This cannot result in NaN (safe for race conditions) because we check
+        // brake_resistance != 0 further up.
         Ibus_sum += brake_duty * vbus_voltage / odrv.config_.brake_resistance;
+    } else {
+        brake_duty = 0;
     }
 
     ibus_ += odrv.ibus_report_filter_k_ * (Ibus_sum - ibus_);

@@ -124,7 +124,7 @@ inline float wrap_pm(float x, float y) {
 #ifdef FPU_FPV4
     float intval = (float)round_int(x / y);
 #else
-    float intval = nearbyint(x / y);
+    float intval = nearbyintf(x / y);
 #endif
     return x - intval * y;
 }

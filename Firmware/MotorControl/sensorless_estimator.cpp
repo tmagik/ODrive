@@ -36,6 +36,11 @@ bool SensorlessEstimator::update() {
     // TODO: we read values here which are modified by a higher priority interrupt.
     // This is not thread-safe.    
     auto current_meas = axis_->motor_.current_meas_;
+    if (!axis_->motor_.is_armed_) {
+        // While the motor is disarmed the current is not measurable so we
+        // assume that it's zero.
+        current_meas = {0.0f, 0.0f};
+    }
     if (!current_meas.has_value()) {
         error_ |= ERROR_UNKNOWN_CURRENT_MEASUREMENT;
         reset(); // Reset state for when the next valid current measurement comes in.
@@ -81,7 +86,7 @@ bool SensorlessEstimator::update() {
     V_alpha_beta_memory_[0] = axis_->motor_.current_control_.final_v_alpha_;
     V_alpha_beta_memory_[1] = axis_->motor_.current_control_.final_v_beta_;
 
-    float phase_vel = phase_vel_.get_previous().value_or(0.0f);
+    float phase_vel = phase_vel_.previous().value_or(0.0f);
 
     // predict PLL phase with velocity
     pll_pos_ = wrap_pm_pi(pll_pos_ + current_meas_period * phase_vel);

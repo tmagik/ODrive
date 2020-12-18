@@ -4,7 +4,7 @@
 class Axis;
 
 #include "encoder.hpp"
-#include "async_estimator.hpp"
+#include "acim_estimator.hpp"
 #include "sensorless_estimator.hpp"
 #include "controller.hpp"
 #include "open_loop_controller.hpp"
@@ -39,7 +39,7 @@ public:
         TaskTimer can_heartbeat;
         TaskTimer controller_update;
         TaskTimer open_loop_controller_update;
-        TaskTimer async_estimator_update;
+        TaskTimer acim_estimator_update;
         TaskTimer motor_update;
         TaskTimer current_controller_update;
         TaskTimer dc_calib;
@@ -128,8 +128,6 @@ public:
     void set_step_dir_active(bool enable);
     void decode_step_dir_pins();
 
-    bool check_DRV_fault();
-    bool check_PSU_brownout();
     bool do_checks(uint32_t timestamp);
 
     void watchdog_feed();
@@ -142,7 +140,8 @@ public:
 
     bool start_closed_loop_control();
     bool stop_closed_loop_control();
-    bool run_lockin_spin(const LockinConfig_t &lockin_config, bool remain_armed);
+    bool run_lockin_spin(const LockinConfig_t &lockin_config, bool remain_armed,
+                std::function<bool(bool)> loop_cb = {} );
     bool run_closed_loop_control_loop();
     bool run_homing();
     bool run_idle_loop();
@@ -161,7 +160,7 @@ public:
     Config_t config_;
 
     Encoder& encoder_;
-    AsyncEstimator async_estimator_;
+    AcimEstimator acim_estimator_;
     SensorlessEstimator& sensorless_estimator_;
     Controller& controller_;
     OpenLoopController open_loop_controller_;
@@ -172,13 +171,14 @@ public:
     MechanicalBrake& mechanical_brake_;
     TaskTimes task_times_;
 
-    osThreadId thread_id_;
+    osThreadId thread_id_ = 0;
     const uint32_t stack_size_ = 2048; // Bytes
     volatile bool thread_id_valid_ = false;
 
     // variables exposed on protocol
     Error error_ = ERROR_NONE;
     bool step_dir_active_ = false; // auto enabled after calibration, based on config.enable_step_dir
+    uint32_t last_drv_fault_ = 0;
 
     // updated from config in constructor, and on protocol hook
     Stm32Gpio step_gpio_;

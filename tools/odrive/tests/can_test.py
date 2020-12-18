@@ -109,8 +109,13 @@ class TestSimpleCAN():
 
     def run_test(self, odrive: ODriveComponent, canbus: CanInterfaceComponent, node_id: int, extended_id: bool, logger: Logger):
         odrive.disable_mappings()
-        odrive.handle.config.gpio15_mode = GPIO_MODE_CAN_A
-        odrive.handle.config.gpio16_mode = GPIO_MODE_CAN_A
+        if odrive.yaml['board-version'].startswith("v3."):
+            odrive.handle.config.gpio15_mode = GPIO_MODE_CAN_A
+            odrive.handle.config.gpio16_mode = GPIO_MODE_CAN_A
+        elif odrive.yaml['board-version'].startswith("v4."):
+            pass # CAN pin configuration is hardcoded
+        else:
+            raise Exception("unknown board version {}".format(odrive.yaml['board-version']))
         odrive.handle.config.enable_can_a = True
         odrive.save_config_and_reboot()
 
@@ -131,6 +136,7 @@ class TestSimpleCAN():
         test_assert_eq(my_req('get_vbus_voltage')['vbus_voltage'], odrive.handle.vbus_voltage, accuracy=0.01)
 
         my_cmd('set_node_id', node_id=node_id+20)
+        time.sleep(0.1) # TODO: remove this hack (see note in firmware)
         asyncio.run(request(canbus.handle, node_id+20, extended_id, 'get_vbus_voltage'))
         test_assert_eq(axis.config.can.node_id, node_id+20)
 

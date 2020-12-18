@@ -35,11 +35,16 @@
 // consistent we just leave a gap in the counting scheme.
 #define GPIO_COUNT  (17)
 
+#define CAN_FREQ (2000000UL)
+
 #if HW_VERSION_MINOR >= 5 && HW_VERSION_VOLTAGE >= 48
 #define DEFAULT_BRAKE_RESISTANCE (2.0f) // [ohm]
 #else
 #define DEFAULT_BRAKE_RESISTANCE (0.47f) // [ohm]
 #endif
+
+#define DEFAULT_ERROR_PIN 0
+#define DEFAULT_MIN_DC_VOLTAGE 8.0f
 
 #define DEFAULT_GPIO_MODES \
     ODriveIntf::GPIO_MODE_DIGITAL, \

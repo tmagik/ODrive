@@ -7,7 +7,6 @@ import platform
 import subprocess
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 from fibre.utils import Event
 import odrive.enums
 from odrive.enums import *
@@ -49,6 +48,7 @@ def calculate_thermistor_coeffs(degree, Rload, R_25, Beta, Tmin, Tmax, plot = Fa
     fit_temps = p1(V)
 
     if plot:
+        import matplotlib.pyplot as plt
         print(fit)
         plt.plot(V, temps, label='actual')
         plt.plot(V, fit_temps, label='fit')
@@ -116,9 +116,9 @@ def oscilloscope_dump(odrv, num_vals, filename='oscilloscope.csv'):
             f.write(str(odrv.oscilloscope.get_val(x)))
             f.write('\n')
 
-data_rate = 100
+data_rate = 200
 plot_rate = 10
-num_samples = 1000
+num_samples = 500
 def start_liveplotter(get_var_callback):
     """
     Starts a liveplotter.
@@ -155,10 +155,10 @@ def start_liveplotter(get_var_callback):
         plt.ion()
 
         # Make sure the script terminates when the user closes the plotter
-        def did_close(evt):
+        def closed(evt):
             cancellation_token.set()
         fig = plt.figure()
-        fig.canvas.mpl_connect('close_event', did_close)
+        fig.canvas.mpl_connect('close_event', closed)
 
         while not cancellation_token.is_set():
             plt.clf()
@@ -530,6 +530,32 @@ def dump_dma(odrv):
             ["TIM1_TRIG", "TIM1_CH1",    "TIM1_CH2",                      "TIM1_CH1",    "TIM1_CH4/TIM1_TRIG/TIM1_COM",   "TIM1_UP",     "TIM1_CH3",                      "-"],
             ["-",         "TIM8_UP",     "TIM8_CH1",                      "TIM8_CH2",    "TIM8_CH3",                      "SPI5_RX",     "SPI5_TX",                       "TIM8_CH4/TIM8_TRIG/TIM8_COM"],
         ]]
+    elif odrv.hw_version_major == 4:
+        dma_functions = [[
+            # https://www.st.com/resource/en/reference_manual/dm00305990-stm32f72xxx-and-stm32f73xxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf Table 26
+            ["SPI3_RX",          "-",                  "SPI3_RX",           "SPI2_RX",            "SPI2_TX",            "SPI3_TX",     "-",                  "SPI3_TX"],
+            ["I2C1_RX",          "I2C3_RX",            "TIM7_UP",           "-",                  "TIM7_UP",            "I2C1_RX",     "I2C1_TX",            "I2C1_TX"],
+            ["TIM4_CH1",         "-",                  "-",                 "TIM4_CH2",           "-",                  "-",           "TIM4_UP",            "TIM4_CH3"],
+            ["-",                "TIM2_UP/TIM2_CH3",   "I2C3_RX",           "-",                  "I2C3_TX",            "TIM2_CH1",    "TIM2_CH2/TIM2_CH4",  "TIM2_UP/TIM2_CH4"],
+            ["UART5_RX",         "USART3_RX",          "UART4_RX",          "USART3_TX",          "UART4_TX",           "USART2_RX",   "USART2_TX",          "UART5_TX"],
+            ["UART8_TX",         "UART7_TX",           "TIM3_CH4/TIM3_UP",  "UART7_RX",           "TIM3_CH1/TIM3_TRIG", "TIM3_CH2",    "UART8_RX",           "TIM3_CH3"],
+            ["TIM5_CH3/TIM5_UP", "TIM5_CH4/TIM5_TRIG", "TIM5_CH1",          "TIM5_CH4/TIM5_TRIG", "TIM5_CH2",           "-",           "TIM5_UP",            "-"],
+            ["-",                "TIM6_UP",            "I2C2_RX",           "I2C2_RX",            "USART3_TX",          "DAC1",        "DAC2",               "I2C2_TX"],
+        ], [
+            # https://www.st.com/resource/en/reference_manual/dm00305990-stm32f72xxx-and-stm32f73xxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf Table 27
+            ["ADC1",      "SAI1_A",      "TIM8_CH1/TIM8_CH2/TIM8_CH3",    "SAI1_A",      "ADC1",                          "SAI1_B",      "TIM1_CH1/TIM1_CH2/TIM1_CH3",    "SAI2_B"],
+            ["-",         "-",           "ADC2",                          "ADC2",        "SAI1_B",                        "-",           "-",                             "-"],
+            ["ADC3",      "ADC3",        "-",                             "SPI5_RX",     "SPI5_TX",                       "AES_OUT",     "AES_IN",                        "-"],
+            ["SPI1_RX",   "-",           "SPI1_RX",                       "SPI1_TX",     "SAI2_A",                        "SPI1_TX",     "SAI2_B",                        "QUADSPI"],
+            ["SPI4_RX",   "SPI4_TX",     "USART1_RX",                     "SDMMC1",      "-",                             "USART1_RX",   "SDMMC1",                        "USART1_TX"],
+            ["-",         "USART6_RX",   "USART6_RX",                     "SPI4_RX",     "SPI4_TX",                       "-",           "USART6_TX",                     "USART6_TX"],
+            ["TIM1_TRIG", "TIM1_CH1",    "TIM1_CH2",                      "TIM1_CH1",    "TIM1_CH4/TIM1_TRIG/TIM1_COM",   "TIM1_UP",     "TIM1_CH3",                      "-"],
+            ["-",         "TIM8_UP",     "TIM8_CH1",                      "TIM8_CH2",    "TIM8_CH3",                      "SPI5_RX",     "SPI5_TX",                       "TIM8_CH4/TIM8_TRIG/TIM8_COM"],
+            None,
+            None,
+            None,
+            ["SDMMC2",    "-",           "-",                             "-",           "-",                             "SDMMC2",      "-",                             "-"],
+        ]]
 
     print("| Name         | Prio | Channel                          | Configured |")
     print("|--------------|------|----------------------------------|------------|")
@@ -547,17 +573,19 @@ def dump_dma(odrv):
                      "*" if (status & 0x80000000) else " "))
 
 def dump_timing(odrv, n_samples=100, path='/tmp/timings.png'):
+    import matplotlib.pyplot as plt
+    import re
+    
     timings = []
     
     for attr in dir(odrv.task_times):
         if not attr.startswith('_'):
             timings.append((attr, getattr(odrv.task_times, attr), [], [])) # (name, obj, start_times, lengths)
-    for attr in dir(odrv.axis0.task_times):
-        if not attr.startswith('_'):
-            timings.append(('axis0.' + attr, getattr(odrv.axis0.task_times, attr), [], [])) # (name, obj, start_times, lengths)
-    for attr in dir(odrv.axis1.task_times):
-        if not attr.startswith('_'):
-            timings.append(('axis1.' + attr, getattr(odrv.axis1.task_times, attr), [], [])) # (name, obj, start_times, lengths)
+    for k in dir(odrv):
+        if re.match(r'axis[0-9]+', k):
+            for attr in dir(getattr(odrv, k).task_times):
+                if not attr.startswith('_'):
+                    timings.append((k + '.' + attr, getattr(getattr(odrv, k).task_times, attr), [], [])) # (name, obj, start_times, lengths)
 
     # Take a couple of samples
     print("sampling...")
@@ -574,7 +602,7 @@ def dump_timing(odrv, n_samples=100, path='/tmp/timings.png'):
 
     plt.rcParams['figure.figsize'] = 21, 9
     plt.figure()
-    plt.grid('both')
+    plt.grid(True)
     plt.barh(
         [-i for i in range(len(timings))], # y positions
         [np.mean(lengths) for name, obj, start_times, lengths in timings], # lengths

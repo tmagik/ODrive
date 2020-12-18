@@ -34,6 +34,7 @@ class TestMotorCalibration():
         axis_ctx.handle.motor.config.phase_inductance = 0.0
         axis_ctx.handle.motor.config.pre_calibrated = False
         axis_ctx.handle.config.enable_watchdog = False
+        axis_ctx.parent.handle.config.dc_max_negative_current = -1.0
 
         axis_ctx.parent.handle.clear_errors()
 
@@ -85,7 +86,7 @@ class TestEncoderDirFind():
 
     def get_test_cases(self, testrig: TestRig):
         for odrive in testrig.get_components(ODriveComponent):
-            for num in range(2):
+            for num in range(len(odrive.axes)):
                 encoders = testrig.get_connected_components({
                     'a': (odrive.encoders[num].a, False),
                     'b': (odrive.encoders[num].b, False)
@@ -129,7 +130,7 @@ class TestEncoderOffsetCalibration():
 
     def get_test_cases(self, testrig: TestRig):
         for odrive in testrig.get_components(ODriveComponent):
-            for num in range(2):
+            for num in range(len(odrive.axes)):
                 encoders = testrig.get_connected_components({
                     'a': (odrive.encoders[num].a, False),
                     'b': (odrive.encoders[num].b, False)
@@ -178,7 +179,7 @@ class TestEncoderIndexSearch():
 
     def get_test_cases(self, testrig: TestRig):
         for odrive in testrig.get_components(ODriveComponent):
-            for num in range(2):
+            for num in range(len(odrive.axes)):
                 encoders = testrig.get_connected_components({
                     'a': (odrive.encoders[num].a, False),
                     'b': (odrive.encoders[num].b, False)
