@@ -40,6 +40,8 @@ Velocity control with anticogging active:
 
 ![post-anticogging](screenshots/post_anticog_vel.png)
 
+To run calibration in the negative direction, set both `start_vel` and `end_vel` to negative values.
+
 ## Saving to NVM
 
 As of v0.5.1, the anticogging map is saved to NVM after calibrating and calling `odrv0.save_configuration()`
@@ -63,7 +65,7 @@ odrv0.axis0.controller.start_anticogging_calibration()
 # calibration is over when the motor stops.
 
 odrv0.axis0.requested_state = AXIS_STATE_IDLE
-odrv0.axis0.controller.remove_anticogging_bias()
+odrv0.axis0.controller.anticogging_remove_bias()
 
 odrv0.save_configuration()
 odrv0.reboot()

@@ -7,7 +7,6 @@
 class Controller : public ODriveIntf::ControllerIntf {
 public:
     struct Anticogging_t{
-        //std::array<float, 1024> cogging_map = {0}; // [Nm]
         lookup_table_t<1024> cogging_map = {{0}, 0.0f, 1.0f};
         float max_torque = 0.15f; // [Nm]
         bool pre_calibrated = false;
@@ -18,7 +17,7 @@ public:
         float start_gain = 25.0f;
         float end_gain = 5.0f;
         float end_tolerance = 0.06f; // threshold for average abs vel error to end anticogging
-        float vel_ramp_rate = (0.5f - 0.05f) / 30.0f; // [turns/s^2]
+        float vel_ramp_rate = (0.5f - 0.05f) / 60.0f; // [turns/s^2]
     };
 
     struct Config_t {

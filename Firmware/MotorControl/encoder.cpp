@@ -806,7 +806,7 @@ bool Encoder::update() {
     pos_circular = fmodf_pos(pos_circular, axis_->controller_.config_.circular_setpoint_range);
     pos_circular_ = pos_circular;
 
-    float pos_cpr = pos_cpr_.get_any().value_or(0.0f);
+    float pos_cpr = pos_cpr_.any().value_or(0.0f);
     pos_cpr += wrap_pm((pos_cpr_counts_ - pos_cpr_counts_last) / (float)config_.cpr, 1.0f);
     pos_cpr = fmodf_pos(pos_cpr, 1.0f);
     pos_cpr_ = pos_cpr;
