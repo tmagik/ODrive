@@ -90,6 +90,7 @@ public:
     void update_current_controller_gains();
     void DRV8301_setup();
     bool check_DRV_fault();
+    bool check_estop_active();
     void set_error(Error error);
     bool do_checks();
     float effective_current_lim();

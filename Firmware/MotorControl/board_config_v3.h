@@ -42,6 +42,8 @@ typedef struct {
     TIM_HandleTypeDef* timer;
     uint16_t control_deadline;
     float shunt_conductance;
+    GPIO_TypeDef* nESTOP_port;
+    uint16_t nESTOP_pin;
 } MotorHardwareConfig_t;
 typedef struct {
     const float* const coeffs;
@@ -96,11 +98,8 @@ const BoardHardwareConfig_t hw_configs[2] = { {
         .timer = &htim1,
         .control_deadline = TIM_1_8_PERIOD_CLOCKS,
         .shunt_conductance = 1.0f / SHUNT_RESISTANCE,  //[S]
-    },
-    .thermistor_config = {
-        .coeffs = &fet_thermistor_poly_coeffs[0],
-        .num_coeffs = fet_thermistor_num_coeffs,
-        .adc_ch = 15,
+        .nESTOP_port = nESTOP_GPIO_Port, // the nESTOP pin is shared between both motors
+        .nESTOP_pin = nESTOP_Pin
     },
     .gate_driver_config = {
         .spi = &hspi3,
@@ -140,6 +139,8 @@ const BoardHardwareConfig_t hw_configs[2] = { {
         .timer = &htim8,
         .control_deadline = (3 * TIM_1_8_PERIOD_CLOCKS) / 2,
         .shunt_conductance = 1.0f / SHUNT_RESISTANCE,  //[S]
+        .nESTOP_port = nESTOP_GPIO_Port, // the nESTOP pin is shared between both motors
+        .nESTOP_pin = nESTOP_Pin
     },
     .thermistor_config = {
         .coeffs = &fet_thermistor_poly_coeffs[0],
