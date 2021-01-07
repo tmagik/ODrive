@@ -1,6 +1,6 @@
 import usb.util
 import time
-import fractions
+import math
 import array
 import time
 from odrive.dfuse.DfuState import DfuState
@@ -195,7 +195,7 @@ class DfuDevice:
         blocks = [data[i:i + transfer_size] for i in range(0, len(data), transfer_size)]
         for blocknum, block in enumerate(blocks):
             #print('write to {:08X} ({} bytes)'.format(
-            #        sector['addr'] + blocknum * TRANSFER_SIZE, len(block)))
+            #        sector['addr'] + blocknum * transfer_size, len(block)))
             self.write(blocknum, block)
             status = self.wait_while_state(DfuState.DFU_DOWNLOAD_BUSY)
             if status[1] != DfuState.DFU_DOWNLOAD_IDLE:
@@ -215,7 +215,7 @@ class DfuDevice:
         
         data = array.array(u'B')
         for blocknum in range(int(sector['len'] / transfer_size)):
-            #print('read at {:08X}'.format(sector['addr'] + blocknum * TRANSFER_SIZE))
+            #print('read at {:08X}'.format(sector['addr'] + blocknum * transfer_size))
             deviceBlock = self.read(blocknum, transfer_size)
             data.extend(deviceBlock)
         self.abort() # take device into DFU_IDLE
