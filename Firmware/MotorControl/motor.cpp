@@ -499,6 +499,8 @@ bool Motor::run_calibration() {
             return false;
     } else if (config_.motor_type == MOTOR_TYPE_GIMBAL) {
         // no calibration needed
+    } else if (config_.motor_type == MOTOR_TYPE_BRUSH) {
+        // no calibration needed
     } else {
         return false;
     }

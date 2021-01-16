@@ -363,7 +363,6 @@ bool Axis::run_closed_loop_control_loop() {
     return check_for_errors();
 }
 
-
 // Slowly drive in the negative direction at homing_speed until the min endstop is pressed
 // When pressed, set the linear count to the offset (default 0), and then go to position 0
 bool Axis::run_homing() {

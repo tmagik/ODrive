@@ -171,6 +171,20 @@ void Encoder::set_circular_count(int32_t count, bool update_offset) {
 }
 
 bool Encoder::run_index_search() {
+
+    // TODO (tlalexander): This is a hack. What I really want is to do is
+    // be able to use my encoder on the brushed motor without needing to run
+    // index search, but I did not sort out exactly how to do that.
+    if (axis_->motor_.config_.motor_type == Motor::MOTOR_TYPE_BRUSH)
+    {
+      config_.phase_offset = 0;
+      config_.phase_offset_float = 0.0f;
+      is_ready_ = true;
+      set_circular_count(0, false);
+      set_linear_count(0); // Avoid position control transient after search
+      return true;
+    }
+
     config_.use_index = true;
     index_found_ = false;
     set_idx_subscribe();
@@ -752,6 +766,7 @@ bool Encoder::update() {
             }
 
         }break;
+
         default: {
             set_error(ERROR_UNSUPPORTED_ENCODER_MODE);
             return false;

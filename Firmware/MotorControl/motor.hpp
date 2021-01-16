@@ -83,6 +83,10 @@ public:
     bool measure_phase_resistance(float test_current, float max_voltage);
     bool measure_phase_inductance(float test_voltage);
     bool run_calibration();
+    bool enqueue_modulation_timings(float mod_alpha, float mod_beta);
+    bool enqueue_voltage_timings(float v_alpha, float v_beta);
+    bool enqueue_brushed_current_timings(float current_setpoint);
+    bool enqueue_brushed_voltage_timings(float current_setpoint);
     void update(uint32_t timestamp);
 
     // These functions are called as appropriate from the board.cpp file.
