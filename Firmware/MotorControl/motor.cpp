@@ -404,7 +404,7 @@ bool Motor::enqueue_brushed_current_timings(float current_setpoint) {
     // with high current gain values. Perhaps a dedicated term could be added
     // to the protocol for this.
     float V_ramp_limit;
-    if(ictrl.final_v_beta > 0.0001)
+    if(ictrl.final_v_beta > 0.0001f)
     {
       V_ramp_limit = ictrl.final_v_beta;
     }else

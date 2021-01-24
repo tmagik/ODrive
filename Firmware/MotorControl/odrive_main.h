@@ -33,6 +33,14 @@ extern "C" {
 //default timeout waiting for phase measurement signals
 #define PH_CURRENT_MEAS_TIMEOUT 2 // [ms]
 
+// Defined in autogen/version.c based on git-derived version numbers
+extern const unsigned char fw_version_major_;
+extern const unsigned char fw_version_minor_;
+extern const unsigned char fw_version_revision_;
+extern const unsigned char fw_version_unreleased_;
+
+
+
 //TODO clean this up
 static const float current_meas_period = CURRENT_MEAS_PERIOD;
 static const int current_meas_hz = CURRENT_MEAS_HZ;
