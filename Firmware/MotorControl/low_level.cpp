@@ -755,8 +755,14 @@ void handle_pulse(int gpio_num, uint32_t high_time) {
 
     /* overload this with mix mapping thread */
     struct MIXMapping_t *mixmap = &board_config.mix_mappings[0];
-    update_mix_endpoint(mixmap, value);
- 
+    if (gpio_num == mixmap->throttle_pin) {
+        update_mix_endpoint(mixmap, value);
+    } else if (gpio_num == mixmap->steer_pin) {
+
+        last_steering = value;
+    } 
+
+
     Endpoint* endpoint = get_endpoint(board_config.pwm_mappings[gpio_num - 1].endpoint);
     // TODO? last_sample[gpio_num - 1] = value;
     if (!endpoint)
