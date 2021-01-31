@@ -68,11 +68,24 @@ extern SystemStats_t system_stats_;
 #ifdef __cplusplus
 }
 
+struct MIXMapping_t {
+    endpoint_ref_t endpoint_l = {0}; /* left and right motor endpoints */
+    endpoint_ref_t endpoint_r = {0};
+    float min = -24;
+    float max = 24;
+    float deadband = 0; /* size of center deadband for no current */
+    uint8_t throttle_pin; /* PWM/analog input pin for throttle */
+    uint8_t steer_pin; /* PWM/analog input pin for steering direction */
+    //bool reverse_reverse = false; /* don't act like a normal wheeled vehicle in reverse */
+};
+
 struct PWMMapping_t {
     endpoint_ref_t endpoint = { 0 };
     float min = 0;
     float max = 0;
 };
+
+#define MIX_COUNT 1
 
 // @brief general user configurable board configuration
 struct BoardConfig_t {
@@ -91,6 +104,7 @@ struct BoardConfig_t {
                                                                         //<! The default is 26V for the 24V board version and 52V for the 48V board version.
     PWMMapping_t pwm_mappings[GPIO_COUNT];
     PWMMapping_t analog_mappings[GPIO_COUNT];
+    MIXMapping_t mix_mappings[MIX_COUNT];
 };
 extern BoardConfig_t board_config;
 extern bool user_config_loaded_;

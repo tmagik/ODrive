@@ -70,6 +70,20 @@ auto make_protocol_definitions(PWMMapping_t& mapping) {
     );
 }
 
+auto make_protocol_definitions(MIXMapping_t& mixmap) {
+    return make_protocol_member_list(
+        make_protocol_property("endpoint_l", &mixmap.endpoint_l),
+        make_protocol_property("endpoint_r", &mixmap.endpoint_r),
+        make_protocol_property("min", &mixmap.min),
+        make_protocol_property("max", &mixmap.max),
+        make_protocol_property("deadband", &mixmap.deadband),
+        make_protocol_property("throttle_pin", &mixmap.throttle_pin),
+        make_protocol_property("steer_pin", &mixmap.steer_pin)
+        // * no bool in fiber .. make_protocol_property("reverse_reverse", &mixmap.reverse_reverse)
+    );
+}
+     
+
 /* Function implementations --------------------------------------------------*/
 
 void init_communication(void) {
@@ -158,7 +172,8 @@ static inline auto make_obj_tree() {
             make_protocol_object("gpio4_pwm_mapping", make_protocol_definitions(board_config.pwm_mappings[3])),
 
             make_protocol_object("gpio3_analog_mapping", make_protocol_definitions(board_config.analog_mappings[2])),
-            make_protocol_object("gpio4_analog_mapping", make_protocol_definitions(board_config.analog_mappings[3]))
+            make_protocol_object("gpio4_analog_mapping", make_protocol_definitions(board_config.analog_mappings[3])),
+            make_protocol_object("mix_mapping", make_protocol_definitions(board_config.mix_mappings[0]))
             ),
         make_protocol_object("axis0", axes[0]->make_protocol_definitions()),
         make_protocol_object("axis1", axes[1]->make_protocol_definitions()),
