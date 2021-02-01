@@ -718,20 +718,24 @@ void update_mix_endpoint(const struct MIXMapping_t *mixmap, float throttle)
     float r = 0;
 
     /* TODO: check for endpoints? */
-/*
-    if (throttle > db) {
+    if (mixmap->reverse_reverse) {
         l = throttle - steer;
         r = throttle + steer;
-    } else if (throttle < -db) {
-        l = throttle + steer;
-        r = throttle - steer;
-    } else if (steer > db || steer < -db) {
-	l = steer;
-	r = -steer;
-    }
-*/
-    l = throttle - steer;
-    r = throttle + steer;
+    } else {
+        /* drive like there are steering wheels */
+        /* TODO: improve discontinuties in response */
+        if (throttle > db) {
+            l = throttle + steer;
+            r = throttle - steer;
+        } else if (throttle < -db) {
+            l = throttle - steer;
+            r = throttle + steer;
+        } else if (throttle > 0 && (steer > db || steer < -db)) {
+            l = steer;
+	    r = -steer;
+        }
+    }    
+
     if (l > mixmap->max) l = mixmap->max;
     if (r > mixmap->max) r = mixmap->max;
     if (l < mixmap->min) l = mixmap->min;

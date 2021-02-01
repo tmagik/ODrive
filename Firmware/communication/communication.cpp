@@ -128,6 +128,7 @@ static inline auto make_obj_tree() {
         make_protocol_ro_property("hw_version_major", &hw_version_major),
         make_protocol_ro_property("hw_version_minor", &hw_version_minor),
         make_protocol_ro_property("hw_version_variant", &hw_version_variant),
+        make_protocol_ro_property("fw_git32", &fw_git32_),
         make_protocol_ro_property("fw_version_major", &fw_version_major_),
         make_protocol_ro_property("fw_version_minor", &fw_version_minor_),
         make_protocol_ro_property("fw_version_revision", &fw_version_revision_),

@@ -34,6 +34,8 @@ extern "C" {
 #define PH_CURRENT_MEAS_TIMEOUT 2 // [ms]
 
 // Defined in autogen/version.c based on git-derived version numbers
+extern char * fw_version_;
+extern const uint32_t fw_git32_;
 extern const unsigned char fw_version_major_;
 extern const unsigned char fw_version_minor_;
 extern const unsigned char fw_version_revision_;
@@ -76,7 +78,7 @@ struct MIXMapping_t {
     float deadband = 0; /* size of center deadband for no current */
     uint8_t throttle_pin; /* PWM/analog input pin for throttle */
     uint8_t steer_pin; /* PWM/analog input pin for steering direction */
-    //bool reverse_reverse = false; /* don't act like a normal wheeled vehicle in reverse */
+    bool reverse_reverse = false; /* don't act like a normal wheeled vehicle in reverse */
 };
 
 struct PWMMapping_t {

@@ -23,7 +23,6 @@ def version_str_to_tuple(version_string):
             int(re.sub(regex, r"\3", version_string)),
             (re.sub(regex, r"\4", version_string) != ""))
 
-
 def get_version_from_git():
     script_dir = os.path.dirname(os.path.realpath(__file__))
     try:
@@ -34,13 +33,17 @@ def get_version_from_git():
 
         (major, minor, revision, is_prerelease) = version_str_to_tuple(git_tag)
 
+        git32 = subprocess.check_output(["git", "describe", "--abbrev=8", "--always"],
+            cwd=script_dir)
+        git32 = git32.decode(sys.stdout.encoding or 'ascii').rstrip('\n')
+
         # if is_prerelease:
         #     revision += 1
-        return git_tag, major, minor, revision, is_prerelease
+        return git_tag, major, minor, revision, is_prerelease, git32
 
     except Exception as ex:
         print(ex)
-        return "[unknown version]", 0, 0, 0, 1
+        return "[unknown version]", 0, 0, 0, 1, 0
 
 def get_version_str(git_only=False, is_post_release=False, bump_rev=False, release_override=False):
     """
@@ -57,7 +60,7 @@ def get_version_str(git_only=False, is_post_release=False, bump_rev=False, relea
     #    with open(version_file_path) as version_file:
     #        return version_file.readline().rstrip('\n')
     
-    _, major, minor, revision, unreleased = get_version_from_git()
+    _, major, minor, revision, unreleased, git32 = get_version_from_git()
     if bump_rev:
         revision += 1
     version = '{}.{}.{}'.format(major, minor, revision)
@@ -75,11 +78,13 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
 
-    git_name, major, minor, revision, unreleased = get_version_from_git()
+    git_name, major, minor, revision, unreleased, git32 = get_version_from_git()
     print('Firmware version {}.{}.{}{} ({})'.format(
         major, minor, revision, '-dev' if unreleased else '',
         git_name))
-    #args.output.write('const unsigned char fw_version = "{}"\n'.format(git_name))
+    args.output.write('#include <stdint.h>\n')
+    args.output.write('const char* fw_version_ = "{}";\n'.format(git_name))
+    args.output.write('const uint32_t fw_git32_ = 0x{};\n'.format(git32[0:8]))
     args.output.write('const unsigned char fw_version_major_ = {};\n'.format(major))
     args.output.write('const unsigned char fw_version_minor_ = {};\n'.format(minor))
     args.output.write('const unsigned char fw_version_revision_ = {};\n'.format(revision))

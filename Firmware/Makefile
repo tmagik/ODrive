@@ -12,7 +12,7 @@ OPENOCD := openocd -f interface/stlink-v2.cfg \
 all: autogen/version.c
 	@tup --quiet --no-environ-check
 
-autogen/version.c:
+autogen/version.c: ../.git/index
 	python3 -B ../tools/odrive/version.py --output autogen/version.c                                                
 flash: all
 	$(OPENOCD) -c init \
