@@ -1,6 +1,6 @@
 import usb.util
 import time
-import fractions
+import math 
 import array
 import time
 from odrive.dfuse.DfuState import DfuState
